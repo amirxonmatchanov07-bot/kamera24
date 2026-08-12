@@ -23,12 +23,16 @@ class ProductImportController extends Controller
 
             foreach ($items as $item) {
                 $name = trim($item['name']);
+                $price = round((float) $item['price'], 2);
 
                 $attributes = [
                     'category' => trim($item['category']),
-                    'price' => round((float) $item['price'], 2),
-                    'cost' => round((float) $item['cost'], 2),
+                    'price' => $price,
                 ];
+
+                if (isset($item['cost']) && $item['cost'] !== null) {
+                    $attributes['cost'] = round((float) $item['cost'], 2);
+                }
 
                 if (! empty($item['image_base64'])) {
                     $attributes['image'] = $this->storeProductImage($item['image_base64']);
@@ -42,6 +46,8 @@ class ProductImportController extends Controller
                 } else {
                     $attributes['name'] = $name;
                     $attributes['icon'] = $item['icon'] ?? 'package';
+                    // Tannarx berilmagan bo'lsa, foyda hisobi 0 ko'rsatilishi uchun narxga tenglashtiramiz.
+                    $attributes['cost'] = $attributes['cost'] ?? $price;
                     Product::create($attributes);
                     $created++;
                 }

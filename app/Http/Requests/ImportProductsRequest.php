@@ -18,7 +18,7 @@ class ImportProductsRequest extends FormRequest
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.category' => ['required', 'string', 'max:100'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
-            'items.*.cost' => ['required', 'numeric', 'min:0'],
+            'items.*.cost' => ['nullable', 'numeric', 'min:0'],
             'items.*.icon' => ['nullable', 'string', 'max:50'],
             'items.*.image_base64' => ['nullable', 'string'],
         ];
