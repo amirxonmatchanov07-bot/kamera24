@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/products', [ProductController::class, 'index']);
         Route::post('/products', [ProductController::class, 'store'])->middleware('role:admin');
+        Route::post('/products/bulk-price-update', [ProductController::class, 'bulkPriceUpdate'])->middleware('role:admin');
         Route::put('/products/{product}', [ProductController::class, 'update'])->middleware('role:admin');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->middleware('role:admin');
 

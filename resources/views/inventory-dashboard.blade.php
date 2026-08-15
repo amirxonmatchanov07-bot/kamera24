@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Kamera 24  — Boshqaruv paneli</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,7 @@
       extend: {
         colors: { accent: '#B5502A', ink: '#1A1614' },
         fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+        borderRadius: { DEFAULT: '8px', md: '12px', lg: '18px' },
       }
     }
   }
@@ -26,6 +27,23 @@
   body{font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
   [x-cloak]{display:none!important;}
   ::-webkit-scrollbar{width:0;height:0;}
+  * { -webkit-tap-highlight-color: transparent; }
+  button, a { touch-action: manipulation; }
+  button:not(:disabled):active { transform: scale(0.97); }
+  /* iOS Safari kichik shriftli inputlarga fokus qilinganda avtomatik zoom qilib yuboradi - oldini olamiz */
+  @media (max-width: 767px) {
+    input, select, textarea { font-size: 16px !important; }
+  }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #B5502A;
+    box-shadow: 0 0 0 3px rgba(181,80,42,0.15);
+  }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   @media print {
     body * { visibility: hidden; }
     #receipt-print, #receipt-print * { visibility: visible; }
@@ -36,7 +54,7 @@
 <body class="bg-[#FAFAF7] text-ink font-sans min-h-screen" x-data="dashboard({{ Illuminate\Support\Js::from(['role' => auth()->user()->role, 'name' => auth()->user()->name]) }})" x-init="init()">
 
   <!-- Header -->
-  <div class="sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6 py-3 bg-[#FAFAF7] border-b border-ink/10">
+  <div class="safe-top sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6 py-3 bg-[#FAFAF7]/85 backdrop-blur-md border-b border-ink/10">
     <div class="flex items-center gap-2.5">
       <div class="w-8 h-8 rounded bg-ink flex items-center justify-center">
         <i data-lucide="store" class="w-[18px] h-[18px] text-[#FAFAF7]"></i>
@@ -205,7 +223,7 @@
       <!-- ============ SOTUV ============ -->
       <div x-show="nav === 'sotuv'" x-cloak>
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-3">
-          <div>
+          <div class="min-w-0">
             <input type="text" x-model="saleSearch" placeholder="Mahsulot qidirish..."
                    class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px]">
             <div class="flex gap-1.5 overflow-x-auto mt-2 pb-0.5">
@@ -213,18 +231,30 @@
                 <button @click="saleCategory = c"
                   class="px-3 py-1.5 rounded border text-xs font-semibold whitespace-nowrap"
                   :class="saleCategory === c ? 'bg-accent text-[#FAFAF7] border-accent' : 'border-ink/15 text-ink/65'"
-                  x-text="c"></button>
+                  x-text="c + ' (' + categoryCount(c) + ')'"></button>
               </template>
             </div>
-            <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-2.5">
+            <div class="bg-white border border-ink/10 rounded-md mt-2.5 divide-y divide-ink/10">
+              <template x-if="filteredSaleProducts.length === 0">
+                <div class="flex flex-col items-center gap-2 py-8 px-4">
+                  <i data-lucide="search-x" class="w-6 h-6 text-ink/30"></i>
+                  <span class="text-[12.5px] text-ink/50 text-center">Mahsulot topilmadi</span>
+                </div>
+              </template>
               <template x-for="p in filteredSaleProducts" :key="p.id">
-                <button @click="addToCart(p)" class="flex flex-col gap-1.5 p-2.5 bg-white border border-ink/10 rounded-md text-left min-h-[44px]">
-                  <div class="w-full h-28 bg-[#F1EFEA] rounded overflow-hidden flex items-center justify-center">
+                <button @click="addToCart(p)" class="w-full flex items-center gap-2.5 py-2.5 px-3 text-left min-h-[44px] hover:bg-[#F9F7F2]">
+                  <div class="w-14 h-14 shrink-0 bg-[#F1EFEA] rounded overflow-hidden flex items-center justify-center">
                     <img :src="p.image_url" x-show="p.image_url" class="w-full h-full object-cover">
-                    <i :data-lucide="p.icon" x-show="!p.image_url" class="w-7 h-7 text-ink/40"></i>
+                    <i :data-lucide="p.icon" x-show="!p.image_url" class="w-6 h-6 text-ink/40"></i>
                   </div>
-                  <div class="text-xs font-semibold leading-snug" x-text="p.name"></div>
-                  <div class="text-[12.5px] font-bold" x-text="money(p.price)"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-[13px] font-semibold truncate" x-text="p.name"></div>
+                    <div class="text-[11px] text-ink/50" x-text="p.category"></div>
+                  </div>
+                  <div class="text-[13px] font-bold shrink-0" x-text="money(p.price)"></div>
+                  <div class="shrink-0 w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                    <i data-lucide="plus" class="w-4 h-4 text-accent"></i>
+                  </div>
                 </button>
               </template>
             </div>
@@ -293,20 +323,27 @@
             <button @click="prodCategory = c"
               class="px-3 py-1.5 rounded border text-xs font-semibold whitespace-nowrap"
               :class="prodCategory === c ? 'bg-accent text-[#FAFAF7] border-accent' : 'border-ink/15 text-ink/65'"
-              x-text="c"></button>
+              x-text="c + ' (' + categoryCount(c) + ')'"></button>
           </template>
         </div>
         <div class="bg-white border border-ink/10 rounded-md p-3.5">
+          <template x-if="filteredProdList.length === 0">
+            <div class="flex flex-col items-center gap-2 py-8 px-4">
+              <i data-lucide="search-x" class="w-6 h-6 text-ink/30"></i>
+              <span class="text-[12.5px] text-ink/50 text-center">Mahsulot topilmadi</span>
+            </div>
+          </template>
           <template x-for="p in filteredProdList" :key="p.id">
-            <div class="flex items-center gap-2.5 py-2.5 border-t border-ink/10">
-              <div class="w-14 h-14 shrink-0 bg-[#F1EFEA] rounded overflow-hidden flex items-center justify-center">
+            <div class="flex items-center gap-2.5 py-2.5 border-t border-ink/10 first:border-t-0">
+              <button @click="openZoom(p)" :disabled="!p.image_url"
+                      class="w-14 h-14 shrink-0 bg-[#F1EFEA] rounded overflow-hidden flex items-center justify-center">
                 <img :src="p.image_url" x-show="p.image_url" class="w-full h-full object-cover">
                 <i :data-lucide="p.icon" x-show="!p.image_url" class="w-6 h-6 text-ink/45"></i>
-              </div>
-              <div class="flex-1 min-w-0">
+              </button>
+              <button @click="openZoom(p)" class="flex-1 min-w-0 text-left">
                 <div class="text-[13px] font-semibold truncate" x-text="p.name"></div>
                 <div class="text-[11px] text-ink/50" x-text="p.category"></div>
-              </div>
+              </button>
               <div class="text-[13px] font-bold shrink-0" x-text="money(p.price)"></div>
               <button @click="deleteProduct(p)" x-show="role === 'admin'"
                       class="shrink-0 w-8 h-8 flex items-center justify-center text-red-700/70 rounded hover:bg-red-700/10">
@@ -397,6 +434,28 @@
             <span x-text="apiToken ? 'Tokenni yangilash' : 'Token yaratish'"></span>
           </button>
         </div>
+
+        <div class="bg-white border border-ink/10 rounded-md p-3.5 mt-2.5">
+          <div class="flex items-center gap-2 mb-1">
+            <i data-lucide="percent" class="w-4 h-4 text-accent"></i>
+            <div class="text-[13.5px] font-bold">Barcha narxlarni o'zgartirish</div>
+          </div>
+          <div class="text-[11px] text-ink/50 mb-2.5">
+            Barcha mahsulotlarning sotuv narxi shu foizga oshiriladi (kamaytirish uchun manfiy son kiriting, masalan -10).
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1 min-w-0">
+              <input type="number" step="0.1" x-model.number="bulkPricePercent" placeholder="Masalan: 10"
+                     class="w-full pl-3 pr-7 py-2.5 border border-ink/10 rounded-md bg-white text-[13px]">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-ink/40 font-semibold">%</span>
+            </div>
+            <button @click="applyBulkPriceUpdate()" :disabled="bulkPriceApplying"
+                    class="shrink-0 px-4 py-2.5 rounded-md bg-accent text-[#FAFAF7] text-[13px] font-bold disabled:opacity-50">
+              <span x-show="!bulkPriceApplying">Qo'llash</span>
+              <span x-show="bulkPriceApplying" x-cloak>Bajarilmoqda...</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="h-24"></div>
@@ -405,14 +464,20 @@
 
   <!-- Toast -->
   <div x-show="toast" x-cloak x-transition
-       class="fixed left-1/2 -translate-x-1/2 z-50 bg-ink text-[#FAFAF7] px-4.5 py-2.5 rounded-md text-[13px] font-semibold"
-       :class="'bottom-' + (window.innerWidth >= 1024 ? '6' : '24')"
-       style="bottom: 84px;"
+       class="fixed left-1/2 -translate-x-1/2 z-50 bg-ink text-[#FAFAF7] px-4.5 py-2.5 rounded-md text-[13px] font-semibold max-w-[90vw] text-center bottom-[calc(96px+env(safe-area-inset-bottom))] lg:bottom-6"
        x-text="toast"></div>
 
   <!-- Receipt modal -->
-  <div x-show="receiptOpen" x-cloak class="fixed inset-0 z-[70] bg-ink/50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg w-full max-w-[340px] max-h-[92vh] overflow-y-auto flex flex-col" @click.outside="receiptOpen = false">
+  <div x-show="receiptOpen" x-cloak class="fixed inset-0 z-[70] bg-ink/50 flex items-end lg:items-center justify-center lg:p-4">
+    <div class="bg-white rounded-t-lg lg:rounded-lg w-full max-w-[340px] max-h-[92vh] overflow-y-auto flex flex-col"
+         @click.outside="receiptOpen = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full lg:translate-y-4 lg:opacity-0"
+         x-transition:enter-end="translate-y-0 lg:opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0 lg:opacity-100"
+         x-transition:leave-end="translate-y-full lg:translate-y-4 lg:opacity-0">
+      <div class="lg:hidden flex justify-center pt-2.5 pb-0.5"><div class="w-9 h-1 rounded-full bg-ink/15"></div></div>
       <div id="receipt-print" class="p-4 font-mono">
         <template x-if="receipt">
           <div>
@@ -452,7 +517,7 @@
           </div>
         </template>
       </div>
-      <div class="flex gap-2 p-3 border-t border-ink/10">
+      <div class="safe-bottom flex gap-2 p-3 border-t border-ink/10">
         <button @click="receiptOpen = false" class="flex-1 p-2.5 border border-ink/15 bg-white rounded-md text-[13px] font-semibold">Yopish</button>
         <button @click="downloadReceipt()" class="flex-1 p-2.5 rounded-md bg-accent text-[#FAFAF7] text-[13px] font-bold">PDF yuklab olish</button>
       </div>
@@ -460,11 +525,19 @@
   </div>
 
   <!-- New customer modal -->
-  <div x-show="newCustomerOpen" x-cloak class="fixed inset-0 z-[60] bg-ink/40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg p-4.5 w-full max-w-[360px]" @click.outside="newCustomerOpen = false">
+  <div x-show="newCustomerOpen" x-cloak class="fixed inset-0 z-[60] bg-ink/40 flex items-end lg:items-center justify-center lg:p-4">
+    <div class="safe-bottom bg-white rounded-t-lg lg:rounded-lg p-6 w-full max-w-[360px]"
+         @click.outside="newCustomerOpen = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full lg:translate-y-4 lg:opacity-0"
+         x-transition:enter-end="translate-y-0 lg:opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0 lg:opacity-100"
+         x-transition:leave-end="translate-y-full lg:translate-y-4 lg:opacity-0">
+      <div class="lg:hidden flex justify-center -mt-2 mb-2"><div class="w-9 h-1 rounded-full bg-ink/15"></div></div>
       <div class="text-sm font-bold mb-3">Yangi mijoz qo'shish</div>
       <label class="text-[11.5px] text-ink/60 font-semibold">Ism-familiya</label>
-      <input type="text" x-model="newCustomer.name" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-2.5">
+      <input type="text" x-model="newCustomer.name" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
       <label class="text-[11.5px] text-ink/60 font-semibold">Telefon (ixtiyoriy)</label>
       <input type="text" x-model="newCustomer.phone" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-3.5">
       <div class="flex gap-2">
@@ -475,22 +548,44 @@
   </div>
 
   <!-- New product modal -->
-  <div x-show="newProductOpen" x-cloak class="fixed inset-0 z-[60] bg-ink/40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg p-4.5 w-full max-w-[360px] max-h-[90vh] overflow-y-auto" @click.outside="newProductOpen = false">
+  <div x-show="newProductOpen" x-cloak class="fixed inset-0 z-[60] bg-ink/40 flex items-end lg:items-center justify-center lg:p-4">
+    <div class="safe-bottom bg-white rounded-t-lg lg:rounded-lg p-6 w-full max-w-[360px] max-h-[90vh] overflow-y-auto"
+         @click.outside="newProductOpen = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full lg:translate-y-4 lg:opacity-0"
+         x-transition:enter-end="translate-y-0 lg:opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0 lg:opacity-100"
+         x-transition:leave-end="translate-y-full lg:translate-y-4 lg:opacity-0">
+      <div class="lg:hidden flex justify-center -mt-2 mb-2"><div class="w-9 h-1 rounded-full bg-ink/15"></div></div>
       <div class="text-sm font-bold mb-3">Yangi mahsulot qo'shish</div>
       <label class="text-[11.5px] text-ink/60 font-semibold">Nomi</label>
-      <input type="text" x-model="newProduct.name" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-2.5">
+      <input type="text" x-model="newProduct.name" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
       <label class="text-[11.5px] text-ink/60 font-semibold">Kategoriya</label>
-      <input type="text" x-model="newProduct.category" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-2.5">
+      <input type="text" x-model="newProduct.category" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
       <label class="text-[11.5px] text-ink/60 font-semibold">Sotuv narxi ($)</label>
-      <input type="number" step="0.01" x-model="newProduct.price" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-2.5">
+      <input type="number" step="0.01" x-model="newProduct.price" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
       <label class="text-[11.5px] text-ink/60 font-semibold">Tannarx ($)</label>
-      <input type="number" step="0.01" x-model="newProduct.cost" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-2.5">
+      <input type="number" step="0.01" x-model="newProduct.cost" class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
       <label class="text-[11.5px] text-ink/60 font-semibold">Rasm (ixtiyoriy)</label>
-      <input type="file" accept="image/*" @change="onNewProductImageSelected($event)" class="w-full text-[12px] my-1 mb-2.5">
-      <template x-if="newProduct.image_base64">
-        <img :src="newProduct.image_base64" class="w-28 h-28 object-cover rounded-md border border-ink/10 mb-3.5">
-      </template>
+      <div class="my-1 mb-3.5">
+        <input type="file" accept="image/*" @change="onNewProductImageSelected($event)" id="productImageInput" class="hidden">
+        <template x-if="!newProduct.image_base64">
+          <label for="productImageInput" class="flex flex-col items-center justify-center gap-1.5 w-28 h-28 rounded-md border-2 border-dashed border-ink/15 text-ink/40 cursor-pointer active:bg-ink/5">
+            <i data-lucide="camera" class="w-6 h-6"></i>
+            <span class="text-[10.5px] font-semibold">Rasm tanlash</span>
+          </label>
+        </template>
+        <template x-if="newProduct.image_base64">
+          <div class="relative w-28 h-28">
+            <img :src="newProduct.image_base64" class="w-full h-full object-cover rounded-md border border-ink/10">
+            <button type="button" @click="newProduct.image_base64 = ''"
+                    class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-ink text-[#FAFAF7] flex items-center justify-center shadow">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </template>
+      </div>
       <div class="flex gap-2">
         <button @click="newProductOpen = false" class="flex-1 p-2.5 border border-ink/15 bg-white rounded-md text-[13px] font-semibold">Bekor qilish</button>
         <button @click="saveNewProduct()" class="flex-1 p-2.5 rounded-md bg-accent text-[#FAFAF7] text-[13px] font-bold">Saqlash</button>
@@ -499,8 +594,16 @@
   </div>
 
   <!-- Customer modal -->
-  <div x-show="selectedCustomerId !== null" x-cloak class="fixed inset-0 z-[60] bg-ink/40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg p-4.5 w-full max-w-[360px]" @click.outside="selectedCustomerId = null" x-show="selectedCustomer">
+  <div x-show="selectedCustomerId !== null" x-cloak class="fixed inset-0 z-[60] bg-ink/40 flex items-end lg:items-center justify-center lg:p-4">
+    <div class="safe-bottom bg-white rounded-t-lg lg:rounded-lg p-6 w-full max-w-[360px]"
+         @click.outside="selectedCustomerId = null" x-show="selectedCustomer"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full lg:translate-y-4 lg:opacity-0"
+         x-transition:enter-end="translate-y-0 lg:opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0 lg:opacity-100"
+         x-transition:leave-end="translate-y-full lg:translate-y-4 lg:opacity-0">
+      <div class="lg:hidden flex justify-center -mt-2 mb-2"><div class="w-9 h-1 rounded-full bg-ink/15"></div></div>
       <div class="text-[15px] font-bold" x-text="selectedCustomer?.name"></div>
       <div class="text-xs text-ink/50 mt-0.5" x-text="selectedCustomer?.phone"></div>
       <div class="mt-3.5 p-3.5 bg-[#FBEEE7] rounded-md">
@@ -521,8 +624,19 @@
     </div>
   </div>
 
+  <!-- Image zoom modal -->
+  <div x-show="zoomImage" x-cloak x-transition class="fixed inset-0 z-[80] bg-ink/85 flex items-center justify-center p-4" @click="zoomImage = null">
+    <button @click="zoomImage = null" class="safe-top absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+      <i data-lucide="x" class="w-5 h-5 text-ink"></i>
+    </button>
+    <div class="max-w-[92vw] max-h-[85vh] flex flex-col items-center gap-3" @click.stop>
+      <img :src="zoomImage" class="max-w-full max-h-[75vh] object-contain rounded-lg bg-white">
+      <div class="text-[13px] font-semibold text-[#FAFAF7] text-center" x-text="zoomName"></div>
+    </div>
+  </div>
+
   <!-- Mobile bottom nav + FAB -->
-  <div class="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex bg-[#FAFAF7] border-t border-ink/10" style="padding-bottom:env(safe-area-inset-bottom);">
+  <div class="safe-bottom lg:hidden fixed bottom-0 left-0 right-0 z-30 flex bg-[#FAFAF7]/85 backdrop-blur-md border-t border-ink/10">
     <template x-for="item in navItems" :key="item.id">
       <button @click="nav = item.id" class="flex flex-col items-center gap-0.5 flex-1 py-1.5 min-h-[44px] justify-center">
         <i :data-lucide="item.icon" class="w-5 h-5" :class="nav === item.id ? 'text-accent' : 'text-ink/45'"></i>
@@ -530,7 +644,8 @@
       </button>
     </template>
   </div>
-  <button @click="nav = 'sotuv'" class="lg:hidden fixed bottom-[70px] right-4 z-[31] w-14 h-14 rounded-lg bg-accent shadow-lg flex items-center justify-center">
+  <button @click="nav = 'sotuv'" class="lg:hidden fixed z-[31] w-14 h-14 rounded-full bg-accent shadow-lg flex items-center justify-center"
+          style="right:16px; bottom:calc(70px + env(safe-area-inset-bottom));">
     <i data-lucide="plus" class="w-6 h-6 text-[#FAFAF7]"></i>
   </button>
 
@@ -573,6 +688,8 @@
         selectedCustomerId: null,
         settleAmount: 0,
         hisobotPeriod: 'bugun',
+        zoomImage: null, zoomName: '',
+        bulkPricePercent: '', bulkPriceApplying: false,
 
         products: [],
         customers: [],
@@ -675,6 +792,34 @@
           navigator.clipboard?.writeText(this.apiToken);
           this.showToast('Nusxalandi');
         },
+        openZoom(p) {
+          if (!p.image_url) return;
+          this.zoomImage = p.image_url;
+          this.zoomName = p.name;
+        },
+        async applyBulkPriceUpdate() {
+          const percent = Number(this.bulkPricePercent);
+          if (!percent) {
+            this.showToast("Foiz qiymatini kiriting");
+            return;
+          }
+          const dir = percent > 0 ? 'oshiriladi' : 'kamaytiriladi';
+          if (!confirm(`Barcha mahsulotlarning narxi ${Math.abs(percent)}% ga ${dir}. Davom etasizmi?`)) return;
+          this.bulkPriceApplying = true;
+          try {
+            const res = await api('/api/products/bulk-price-update', {
+              method: 'POST',
+              body: JSON.stringify({ percent }),
+            });
+            this.showToast(res.message);
+            this.bulkPricePercent = '';
+            await this.loadProducts();
+          } catch (e) {
+            this.showToast(e.message);
+          } finally {
+            this.bulkPriceApplying = false;
+          }
+        },
         fmt(n) {
           return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
@@ -725,6 +870,9 @@
         get profitChangePct() { return this.pctChange(this.profitToday, this.profitYesterday); },
         get chartMax() { return Math.max(1, ...this.chartData.map(d => d.v)); },
         get saleCategories() { return ['Barchasi', ...new Set(this.products.map(p => p.category))]; },
+        categoryCount(c) {
+          return c === 'Barchasi' ? this.products.length : this.products.filter(p => p.category === c).length;
+        },
         get filteredSaleProducts() {
           return this.products.filter(p =>
             (this.saleCategory === 'Barchasi' || p.category === this.saleCategory) &&

@@ -11,6 +11,7 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -62,5 +63,23 @@ class ProductController extends Controller
         $product->delete();
 
         return response()->json(['message' => 'Mahsulot o\'chirildi']);
+    }
+
+    public function bulkPriceUpdate(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'percent' => ['required', 'numeric', 'min:-100', 'max:1000'],
+        ]);
+
+        $multiplier = 1 + ((float) $data['percent'] / 100);
+        $count = Product::count();
+
+        DB::table('products')->update([
+            'price' => DB::raw('ROUND(price * ' . sprintf('%.10F', $multiplier) . ', 2)'),
+        ]);
+
+        return response()->json([
+            'message' => "{$count} ta mahsulot narxi yangilandi",
+        ]);
     }
 }

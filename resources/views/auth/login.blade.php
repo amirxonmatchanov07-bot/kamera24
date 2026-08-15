@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Kamera 24 — Kirish</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,12 +13,22 @@
       extend: {
         colors: { accent: '#B5502A', ink: '#1A1614' },
         fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+        borderRadius: { DEFAULT: '8px', md: '12px', lg: '18px' },
       }
     }
   }
 </script>
 <style>
   body{font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
+  * { -webkit-tap-highlight-color: transparent; }
+  button { touch-action: manipulation; }
+  button:not(:disabled):active { transform: scale(0.97); }
+  @media (max-width: 767px) { input { font-size: 16px !important; } }
+  input:focus {
+    outline: none;
+    border-color: #B5502A;
+    box-shadow: 0 0 0 3px rgba(181,80,42,0.15);
+  }
 </style>
 </head>
 <body class="bg-[#FAFAF7] text-ink font-sans min-h-screen flex items-center justify-center p-4">
