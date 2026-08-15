@@ -205,14 +205,14 @@
             <!-- Normal -->
             <template x-if="salesState === 'normal'">
               <div>
-                <template x-for="s in recentSales" :key="s.time + s.total">
-                  <div class="flex items-center gap-2.5 py-2 border-t border-ink/10">
+                <template x-for="s in recentSales" :key="s.id">
+                  <button @click="viewReceipt(s.id)" class="w-full flex items-center gap-2.5 py-2 border-t border-ink/10 text-left min-h-[44px]">
                     <div class="w-11 shrink-0 text-[11.5px] text-ink/50 font-medium" x-text="s.time"></div>
                     <div class="flex-1 min-w-0 text-[12.5px] truncate" x-text="s.summary"></div>
                     <div class="shrink-0 text-[10px] font-bold px-1.5 py-1 rounded"
                          :class="payBadge(s.payType)" x-text="s.payType"></div>
                     <div class="w-24 text-right shrink-0 text-[13.5px] font-bold" x-text="money(s.total)"></div>
-                  </div>
+                  </button>
                 </template>
               </div>
             </template>
@@ -259,7 +259,8 @@
               </template>
             </div>
           </div>
-          <div class="bg-white border border-ink/10 rounded-md p-3.5 h-fit">
+          <!-- Desktop: doim ko'rinadigan savat paneli -->
+          <div class="hidden lg:block bg-white border border-ink/10 rounded-md p-3.5 h-fit">
             <div class="text-[13.5px] font-bold mb-2" x-text="'Savat (' + cartCount + ')'"></div>
             <template x-if="cart.length === 0">
               <div class="text-[12.5px] text-ink/45 py-4 text-center">Savat bo'sh</div>
@@ -308,6 +309,82 @@
               </div>
             </template>
           </div>
+        </div>
+      </div>
+
+      <!-- Mobil: savat xulosasi (suzib turadigan panel) -->
+      <button x-show="nav === 'sotuv' && cart.length > 0 && !cartSheetOpen" x-cloak @click="cartSheetOpen = true"
+              class="lg:hidden fixed left-4 right-4 z-[45] flex items-center justify-between px-4 py-3 rounded-full bg-ink shadow-lg"
+              style="bottom:calc(70px + env(safe-area-inset-bottom));">
+        <span class="flex items-center gap-2 text-[13px] font-bold text-[#FAFAF7]">
+          <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+          <span x-text="cartCount + ' mahsulot'"></span>
+        </span>
+        <span class="text-[15px] font-extrabold text-[#FAFAF7]" x-text="money(cartTotal)"></span>
+      </button>
+
+      <!-- Mobil: savat pastdan chiqadigan varaq -->
+      <div x-show="cartSheetOpen" x-cloak class="lg:hidden fixed inset-0 z-[65] bg-ink/40 flex items-end justify-center" @click.self="cartSheetOpen = false">
+        <div class="safe-bottom bg-white rounded-t-lg p-3.5 w-full max-h-[85vh] overflow-y-auto"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="translate-y-full"
+             x-transition:enter-end="translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="translate-y-0"
+             x-transition:leave-end="translate-y-full">
+          <div class="flex justify-center -mt-1 mb-2"><div class="w-9 h-1 rounded-full bg-ink/15"></div></div>
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[13.5px] font-bold" x-text="'Savat (' + cartCount + ')'"></div>
+            <button @click="cartSheetOpen = false" class="w-7 h-7 flex items-center justify-center text-ink/50">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <template x-if="cart.length === 0">
+            <div class="text-[12.5px] text-ink/45 py-4 text-center">Savat bo'sh</div>
+          </template>
+          <template x-if="cart.length > 0">
+            <div>
+              <template x-for="c in cart" :key="c.id">
+                <div class="flex items-center gap-2 py-2 border-t border-ink/10">
+                  <div class="flex-1 min-w-0 text-[12.5px] truncate" x-text="productName(c.id)"></div>
+                  <button @click="changeQty(c.id,-1)" class="w-[26px] h-[26px] border border-ink/15 bg-white rounded">−</button>
+                  <input type="number" x-model.number="c.qty" @change="clampQty(c)" min="1"
+                         class="w-12 px-1 py-1 border border-ink/15 rounded text-[12.5px] font-bold text-center">
+                  <button @click="changeQty(c.id,1)" class="w-[26px] h-[26px] border border-ink/15 bg-white rounded">+</button>
+                  <span class="text-[12.5px] font-bold w-[88px] text-right" x-text="money(lineTotal(c))"></span>
+                </div>
+              </template>
+              <div class="flex items-center gap-2 py-2.5 border-t border-ink/15 mt-1">
+                <span class="text-[11.5px] font-semibold text-ink/60 shrink-0">Chegirma/Ustama</span>
+                <input type="number" x-model.number="cartPct"
+                       class="w-16 px-1.5 py-1.5 border border-ink/15 rounded text-[12.5px] text-center">
+                <span class="text-[11px] text-ink/50 shrink-0">%</span>
+              </div>
+              <div class="flex items-center justify-between py-1">
+                <span class="text-[13px] font-semibold text-ink/60">Jami</span>
+                <span class="text-[19px] font-extrabold" x-text="money(cartTotal)"></span>
+              </div>
+              <div class="flex gap-1.5 my-2">
+                <template x-for="t in ['Naqd','Karta','Nasiya']" :key="t">
+                  <button @click="payType = t"
+                    class="px-3 py-1.5 rounded border text-xs font-semibold"
+                    :class="payType === t ? 'bg-accent text-[#FAFAF7] border-accent' : 'border-ink/15 text-ink/65'"
+                    x-text="t"></button>
+                </template>
+              </div>
+              <div x-show="payType === 'Nasiya'" class="flex gap-1.5 mb-2">
+                <select x-model="checkoutCustomerId"
+                        class="flex-1 min-w-0 px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px]">
+                  <option :value="null" disabled>Mijozni tanlang</option>
+                  <template x-for="c in customers" :key="c.id">
+                    <option :value="c.id" x-text="c.name"></option>
+                  </template>
+                </select>
+                <button @click="openNewCustomer()" class="shrink-0 px-3 rounded-md border border-accent text-accent text-xs font-bold">+ Yangi</button>
+              </div>
+              <button @click="checkout()" class="w-full p-3 rounded-md bg-accent text-[#FAFAF7] text-sm font-bold min-h-[44px]">Sotuvni yakunlash</button>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -644,7 +721,8 @@
       </button>
     </template>
   </div>
-  <button @click="nav = 'sotuv'" class="lg:hidden fixed z-[31] w-14 h-14 rounded-full bg-accent shadow-lg flex items-center justify-center"
+  <button @click="nav = 'sotuv'" x-show="nav !== 'sotuv'" x-cloak
+          class="lg:hidden fixed z-[31] w-14 h-14 rounded-full bg-accent shadow-lg flex items-center justify-center"
           style="right:16px; bottom:calc(70px + env(safe-area-inset-bottom));">
     <i data-lucide="plus" class="w-6 h-6 text-[#FAFAF7]"></i>
   </button>
@@ -688,6 +766,7 @@
         selectedCustomerId: null,
         settleAmount: 0,
         hisobotPeriod: 'bugun',
+        cartSheetOpen: false,
         zoomImage: null, zoomName: '',
         bulkPricePercent: '', bulkPriceApplying: false,
 
@@ -837,6 +916,15 @@
           const mm = String(d.getMinutes()).padStart(2, '0');
           return `${this.uzDate(iso)} ${d.getFullYear()}, ${hh}:${mm}`;
         },
+        async viewReceipt(saleId) {
+          try {
+            const res = await api('/api/sales/' + saleId);
+            this.receipt = res.sale;
+            this.receiptOpen = true;
+          } catch (e) {
+            this.showToast(e.message);
+          }
+        },
         async downloadReceipt() {
           if (!this.receipt) return;
           try {
@@ -939,6 +1027,7 @@
             this.cart = [];
             this.cartPct = 0;
             this.checkoutCustomerId = null;
+            this.cartSheetOpen = false;
             this.receipt = res.sale;
             this.receiptOpen = true;
             await Promise.all([this.loadDashboard(), this.loadProducts(), this.loadCustomers()]);

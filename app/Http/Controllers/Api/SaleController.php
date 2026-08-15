@@ -57,21 +57,33 @@ class SaleController extends Controller
         $sale->load('items.product', 'customer', 'user');
 
         return response()->json([
-            'sale' => [
-                'id' => $sale->id,
-                'total' => (float) $sale->total,
-                'pay_type' => $sale->pay_type,
-                'created_at' => $sale->created_at->toIso8601String(),
-                'cashier' => $sale->user->name,
-                'customer' => $sale->customer?->name,
-                'items' => $sale->items->map(fn ($item) => [
-                    'name' => $item->product->name,
-                    'qty' => $item->qty,
-                    'unit_price' => (float) $item->unit_price,
-                    'line_total' => round($item->qty * (float) $item->unit_price, 2),
-                ]),
-            ],
+            'sale' => $this->receiptData($sale),
             'message' => 'Sotuv yakunlandi',
         ], 201);
+    }
+
+    public function show(Sale $sale): JsonResponse
+    {
+        $sale->load('items.product', 'customer', 'user');
+
+        return response()->json(['sale' => $this->receiptData($sale)]);
+    }
+
+    private function receiptData(Sale $sale): array
+    {
+        return [
+            'id' => $sale->id,
+            'total' => (float) $sale->total,
+            'pay_type' => $sale->pay_type,
+            'created_at' => $sale->created_at->toIso8601String(),
+            'cashier' => $sale->user->name,
+            'customer' => $sale->customer?->name,
+            'items' => $sale->items->map(fn ($item) => [
+                'name' => $item->product->name,
+                'qty' => $item->qty,
+                'unit_price' => (float) $item->unit_price,
+                'line_total' => round($item->qty * (float) $item->unit_price, 2),
+            ]),
+        ];
     }
 }

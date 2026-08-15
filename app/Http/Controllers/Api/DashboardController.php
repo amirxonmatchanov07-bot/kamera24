@@ -40,6 +40,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get()
             ->map(fn (Sale $sale) => [
+                'id' => $sale->id,
                 'time' => $sale->created_at->format('H:i'),
                 'summary' => $sale->items
                     ->map(fn ($item) => $item->product->name.($item->qty > 1 ? " x{$item->qty}" : ''))
