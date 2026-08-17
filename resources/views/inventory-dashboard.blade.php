@@ -61,7 +61,7 @@
       </div>
       <div>
         <div class="text-sm font-bold leading-tight">Kamera 24</div>
-        <div class="text-[11px] text-ink/55 leading-tight">Mobil aksessuarlar</div>
+        <div class="text-[11px] text-ink/55 leading-tight">Xavfsizlik markazi</div>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -559,7 +559,8 @@
           <div>
             <div class="text-center mb-2.5">
               <div class="text-base font-extrabold">Kamera 24</div>
-              <div class="text-[11px] text-ink/50">Mobil aksessuarlar</div>
+              <div class="text-[11px] text-ink/50">Xavfsizlik markazi</div>
+              <div class="text-[11px] text-ink/50">+998 94 841 58 58</div>
             </div>
             <div class="border-t border-dashed border-ink/30 my-2.5"></div>
             <div class="flex justify-between text-[12px] py-0.5"><span class="text-ink/55">Chek raqami</span><span class="font-bold">№ <span x-text="receipt.id"></span></span></div>
@@ -590,6 +591,7 @@
             </div>
             <div class="border-t border-dashed border-ink/30 my-2.5"></div>
             <div class="text-center text-[11px] text-ink/40">Xaridingiz uchun rahmat!</div>
+            <div class="text-center text-[11px] text-ink/40 mt-1">Kamera 24 · +998 94 841 58 58</div>
           </div>
         </template>
       </div>
