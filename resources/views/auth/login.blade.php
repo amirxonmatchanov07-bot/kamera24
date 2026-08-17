@@ -42,11 +42,11 @@
       <div class="text-[11px] text-ink/55">Mobil aksessuarlar</div>
     </div>
 
-    <div class="bg-white border border-ink/10 rounded-md p-4.5">
+    <div class="bg-white border border-ink/10 rounded-lg p-6">
       <div class="text-sm font-bold mb-3.5">Tizimga kirish</div>
 
       @if ($errors->any())
-        <div class="mb-3 px-3 py-2.5 bg-[#FDEDE9] border border-red-700/30 rounded text-[12.5px] text-red-700 font-medium">
+        <div class="mb-3.5 px-3 py-2.5 bg-[#FDEDE9] border border-red-700/30 rounded-md text-[12.5px] text-red-700 font-medium">
           {{ $errors->first() }}
         </div>
       @endif
@@ -55,11 +55,11 @@
         @csrf
         <label class="text-[11.5px] text-ink/60 font-semibold">Email</label>
         <input type="email" name="email" value="{{ old('email') }}" required autofocus
-               class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-2.5">
+               class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
 
         <label class="text-[11.5px] text-ink/60 font-semibold">Parol</label>
         <input type="password" name="password" required
-               class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] my-1 mb-3.5">
+               class="w-full px-3 py-2.5 border border-ink/10 rounded-md bg-white text-[13px] mt-1.5 mb-3.5">
 
         <button type="submit" class="w-full p-3 rounded-md bg-accent text-[#FAFAF7] text-sm font-bold min-h-[44px]">Kirish</button>
       </form>

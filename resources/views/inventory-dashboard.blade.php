@@ -545,16 +545,15 @@
        x-text="toast"></div>
 
   <!-- Receipt modal -->
-  <div x-show="receiptOpen" x-cloak class="fixed inset-0 z-[70] bg-ink/50 flex items-end lg:items-center justify-center lg:p-4">
-    <div class="bg-white rounded-t-lg lg:rounded-lg w-full max-w-[340px] max-h-[92vh] overflow-y-auto flex flex-col"
+  <div x-show="receiptOpen" x-cloak class="fixed inset-0 z-[70] bg-ink/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg w-full max-w-[340px] max-h-[92vh] overflow-y-auto flex flex-col"
          @click.outside="receiptOpen = false"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="translate-y-full lg:translate-y-4 lg:opacity-0"
-         x-transition:enter-end="translate-y-0 lg:opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="translate-y-0 lg:opacity-100"
-         x-transition:leave-end="translate-y-full lg:translate-y-4 lg:opacity-0">
-      <div class="lg:hidden flex justify-center pt-2.5 pb-0.5"><div class="w-9 h-1 rounded-full bg-ink/15"></div></div>
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
       <div id="receipt-print" class="p-4 font-mono">
         <template x-if="receipt">
           <div>
@@ -981,7 +980,7 @@
         },
         linePrice(c) {
           const base = this.productPrice(c.id);
-          return Math.round(base * (1 + (Number(this.cartPct) || 0) / 100));
+          return Math.round(base * (1 + (Number(this.cartPct) || 0) / 100) * 100) / 100;
         },
         lineTotal(c) {
           return this.linePrice(c) * c.qty;
